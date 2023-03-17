@@ -7,6 +7,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Data-auto</title>
 
+  <link rel="stylesheet" href="styles1.css">
+  <link rel="stylesheet" href="styles2.css">
   <script type="module" src="/index.js"></script>
 </head>
 
@@ -15,13 +17,21 @@
 
   <h1>Control de HMI</h1>
 
-  <button id="login">Iniciar sesión con Google</button>
+  <h2>Autentificación</h2>
+  <div>
+    <button id="login">Iniciar sesión con Google</button>
+    <button id="logout">Cerrar sesión</button>
+  </div>
+
   <ul id="auth">
   </ul>
+
   <!-- Mostrando contenido -->
+  <div id="app">
 
+  </div>
 
-  <!-- Modulo de autentificacion -->
+  <!-- Importando modulo de autentificacion -->
   <script type="module" src="auth.js"></script>
 </body>
 
