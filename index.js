@@ -1,4 +1,5 @@
 import { initializeApp } from "firebase/app";
+import { connectAuthEmulator } from "firebase/auth";
 // import { getAnalytics } from "firebase/analytics";
 import { getDatabase } from "firebase/database";
 

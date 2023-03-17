@@ -1,40 +1,52 @@
 import { app, db } from "/index.js"
-import { getAuth, signInWithRedirect, onAuthStateChanged, getRedirectResult, GoogleAuthProvider } from "firebase/auth"
-import { ref, set, update, onValue, onChildAdded, get } from "firebase/database";
+import { ref, set, update, onValue, onChildAdded, get, onChildChanged } from "firebase/database";
+import {
+  getAuth,
+  signInWithRedirect,
+  onAuthStateChanged,
+  getRedirectResult,
+  GoogleAuthProvider,
+  signOut
+} from "firebase/auth"
+
 const provider = new GoogleAuthProvider(app);
 const auth = getAuth(app);
+const redirect = await getRedirectResult(auth);
 
 let authInfo = document.getElementById("auth");
 
-const redirect = await getRedirectResult(auth);
-
+// Maneja si hay usuario autenticado o no
 onAuthStateChanged(auth, (user) => {
-  let li = document.createElement("li");
   if (user) {
     if (redirect !== null && redirect.operationType === "signIn") {
       saveUserData(user);
     }
-
     console.log("Auth si");
+    window.document.getElementById("login").hidden = true;
+    window.document.getElementById("logout").hidden = false;
   } else {
     console.log("Auth no");
-    li.textContent = "No usuario autentificado.";
-    authInfo.appendChild(li);
-    document.getElementById("logout").hidden = true;
+    window.document.getElementById("login").hidden = false;
+    window.document.getElementById("logout").hidden = true;
   }
 });
 
+// Lista de fotos de usuarios autenticados
 onChildAdded(ref(db, 'usersKeys'), (data) => {
-  onValue(ref(db, 'users/' + data.key + "/foto"), (child) => {
-    let li = document.createElement("li");
-    let img = document.createElement("img");
-    img.style.width = "100px";
-    img.src = child.val();
-    li.appendChild(img);
-    authInfo.appendChild(li);
+  onValue(ref(db, 'users/' + data.key + "/"), (child) => {
+    if (child.val().autenticado === true) {
+      let li = document.createElement("li");
+      let img = document.createElement("img");
+      img.style.width = "80px";
+      img.src = child.val().foto;
+      li.id = data.key; // quizas no es lo mas seguro
+      li.appendChild(img);
+      authInfo.appendChild(li);
+    }
   })
 });
 
+// Evento para boton de login
 document.getElementById("login").onclick = async function () {
   try {
     await signInWithRedirect(auth, provider);
@@ -43,34 +55,37 @@ document.getElementById("login").onclick = async function () {
   }
 }
 
-//Esta función guarda los datos del usuario recien autenticado
+//Esta funcion guarda los datos del usuario recien autenticado
 function saveUserData(user) {
   set(ref(db, 'users/' + user.uid), {
     uid: user.uid,
-    autenticado: true, // de momento no funciona, y ademas se hace con reglas de firebase de token
+    autenticado: true, // para mostrar la imagen de perfil de usuarios autenticados
     nombre: user.displayName,
-    email: user.email, // si los datos son legibles para todos es mejor no guardar esto
+    email: user.email,
     foto: user.photoURL,
     dia: user.metadata.lastSignInTime
   });
 
-  // guardando keys o uid de los usuarios por motivos de seguridad
+  // guardando keys o uid en otra ruta por motivos de seguridad
   set(ref(db, 'usersKeys/' + user.uid), true);
 }
 
-/* document.getElementById("logout").onclick = async function () {
-  // Revoke all refresh tokens for a specified user for whatever reason.
-  // Retrieve the timestamp of the revocation, in seconds since the epoch.
-  let uid = auth.currentUser.uid;
-  auth.revokeRefreshTokens(uid)
-    .then(() => {
-      return getAuth().getUser(uid);
-    })
-    .then((userRecord) => {
-      return new Date(userRecord.tokensValidAfterTime).getTime() / 1000;
-    })
-    .then((timestamp) => {
-      set(ref(db, 'users/' + uid), { autenticado: false });
-      console.log(`Tokens revoked at: ${timestamp}`);
-    });
-} */
+// Funcion de cierre de sesion y boton de cierre
+async function logout(uid) {
+  const reference = ref(db, 'users/' + uid + "/");
+  await update(reference, { autenticado: false });
+
+  let img = document.getElementById(uid);
+
+  authInfo.removeChild(img);
+}
+
+document.getElementById("logout").onclick = async function () {
+  try {
+    const uid = auth.currentUser.uid;
+    await signOut(auth).then(logout(uid));
+  } catch (error) {
+    console.log(error);
+  }
+}
+

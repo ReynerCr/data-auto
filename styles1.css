@@ -71,11 +71,14 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
-ul {
+#auth {
   list-style: none;
+  display: flex;
+  flex-flow: row wrap;
+  flex-grow: 4;
 }
 
-li {
+#auth > li {
   display: inline-block;
 }
 
