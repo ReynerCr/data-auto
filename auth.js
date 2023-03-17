@@ -1,6 +1,6 @@
 import { app, db } from "/index.js"
 import { getAuth, signInWithRedirect, onAuthStateChanged, getRedirectResult, GoogleAuthProvider } from "firebase/auth"
-import { ref, set, push, update, onValue, onChildAdded } from "firebase/database";
+import { ref, set, update, onValue, onChildAdded, get } from "firebase/database";
 const provider = new GoogleAuthProvider(app);
 const auth = getAuth(app);
 
@@ -24,13 +24,15 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
-onChildAdded(ref(db, 'users'), (data) => {
-  let li = document.createElement("li");
-  let img = document.createElement("img");
-  img.style.width = "100px";
-  img.src = data.val().foto;
-  li.appendChild(img);
-  authInfo.appendChild(li);
+onChildAdded(ref(db, 'usersKeys'), (data) => {
+  onValue(ref(db, 'users/' + data.key + "/foto"), (child) => {
+    let li = document.createElement("li");
+    let img = document.createElement("img");
+    img.style.width = "100px";
+    img.src = child.val();
+    li.appendChild(img);
+    authInfo.appendChild(li);
+  })
 });
 
 document.getElementById("login").onclick = async function () {
@@ -43,16 +45,17 @@ document.getElementById("login").onclick = async function () {
 
 //Esta función guarda los datos del usuario recien autenticado
 function saveUserData(user) {
-  //update(ref(db, 'users/' + user.uid), { autenticado: false }) // TODO asi se hace update
-  const userListRef = ref(db, 'users/' + user.uid);
-  set(userListRef, {
+  set(ref(db, 'users/' + user.uid), {
     uid: user.uid,
     autenticado: true, // de momento no funciona, y ademas se hace con reglas de firebase de token
     nombre: user.displayName,
-    //email: user.email, // si los datos son legibles para todos es mejor no guardar esto
+    email: user.email, // si los datos son legibles para todos es mejor no guardar esto
     foto: user.photoURL,
     dia: user.metadata.lastSignInTime
   });
+
+  // guardando keys o uid de los usuarios por motivos de seguridad
+  set(ref(db, 'usersKeys/' + user.uid), true);
 }
 
 /* document.getElementById("logout").onclick = async function () {
