@@ -11,13 +11,14 @@ import {
 
 const provider = new GoogleAuthProvider(app);
 const auth = getAuth(app);
-const redirect = await getRedirectResult(auth);
 
 let authInfo = document.getElementById("auth");
 
 // Maneja si hay usuario autenticado o no
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
   if (user) {
+    const redirect = await getRedirectResult(auth);
+
     if (redirect !== null && redirect.operationType === "signIn") {
       saveUserData(user);
     }
