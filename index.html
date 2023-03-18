@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 
 <head>
   <meta charset="UTF-8" />
@@ -27,17 +27,7 @@
 
       <!-- Seccion de imagenes de usuarios autenticados -->
       <ul id="authImgs">
-        <!-- TODO borrar las img provisionales -->
-        <li><img src="img_provisional.png" width="60px"></li>
-        <li><img src="img_provisional.png" width="60px"></li>
-        <li><img src="img_provisional.png" width="60px"></li>
-        <li><img src="img_provisional.png" width="60px"></li>
-        <li><img src="img_provisional.png" width="60px"></li>
-        <li><img src="img_provisional.png" width="60px"></li>
-        <li><img src="img_provisional.png" width="60px"></li>
-        <li><img src="img_provisional.png" width="60px"></li>
-        <li><img src="img_provisional.png" width="60px"></li>
-        <li><img src="img_provisional.png" width="60px"></li>
+
       </ul>
     </section>
 
@@ -47,10 +37,8 @@
     <section id="authorSection">
       <h3>Notas del autor:</h3>
       <form id="formAuthor" onsubmit="return false;">
-        <!-- TODO poner disabled a textarea -->
-        <textarea id="authorNotes" name="authorNotes"></textarea>
-        <!-- TODO poner hidden a boton -->
-        <button id="updateAuthorNotes">Actualizar</button>
+        <textarea id="authorNotes" name="authorNotes" disabled></textarea>
+        <button id="updateAuthorNotes" hidden>Actualizar</button>
       </form>
     </section>
   </div>
@@ -58,7 +46,9 @@
 
   <!-- Mostrando contenido de HMI -->
   <div id="app">
-
+    <h2>Temperaturas</h2>
+    <img src="img_provisional.png" width="200px">
+    <img src="img_provisional.png" width="200px">
   </div>
 
   <!-- Importando modulo de autentificacion -->

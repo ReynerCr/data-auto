@@ -14,7 +14,7 @@ import "/authorNote.js";
 const provider = new GoogleAuthProvider(app);
 export const auth = getAuth(app);
 
-let authInfo = document.getElementById("auth");
+const authInfo = document.getElementById("authImgs");
 
 // Maneja si hay usuario autenticado o no
 onAuthStateChanged(auth, async (user) => {
@@ -26,21 +26,19 @@ onAuthStateChanged(auth, async (user) => {
     }
     window.document.getElementById("login").hidden = true;
     window.document.getElementById("logout").hidden = false;
-
-    isAuthor();
   } else {
     window.document.getElementById("login").hidden = false;
-    // TODO habilitar
-    //window.document.getElementById("logout").hidden = true;
+    window.document.getElementById("logout").hidden = true;
   }
+  isAuthor();
 });
 
 // Lista de fotos de usuarios autenticados
 onChildAdded(ref(db, 'usersKeys'), (data) => {
   onValue(ref(db, 'users/' + data.key + '/public'), (child) => {
     if (child.val().auth === true) {
-      let li = document.createElement("li");
-      let img = document.createElement("img");
+      const li = document.createElement("li");
+      const img = document.createElement("img");
       img.style.width = "80px";
       img.src = child.val().photo;
       li.id = data.key; // quizas no es lo mas seguro
@@ -48,7 +46,7 @@ onChildAdded(ref(db, 'usersKeys'), (data) => {
       authInfo.appendChild(li);
     }
     else {
-      let li = document.getElementById(data.key);
+      const li = document.getElementById(data.key);
       if (li) {
         authInfo.removeChild(li);
       }
@@ -72,7 +70,7 @@ function saveUserData(user) {
       auth: true,
       photo: user.photoURL
     }, // para mostrar la imagen de perfil de usuarios autenticados
-    
+
     uid: user.uid,
     name: user.displayName,
     email: user.email,
@@ -100,16 +98,24 @@ document.getElementById("logout").onclick = async function () {
 
 // TODO funcional pero se puede mejorar
 function isAuthor() {
-  if (auth.currentUser.email === "reynercontreras0@gmail.com") {
-    let btnUpdateAuthorNotes = document.getElementById("updateAuthorNotes");
-
-    document.getElementById("authorNotes").disabled = false;
+  const btnUpdateAuthorNotes = document.getElementById("updateAuthorNotes");
+  const authorNotes = document.getElementById("authorNotes");
+  const user = auth.currentUser;
+  if (user !== null && user.uid === "6M7eKTKBDVXD69bFCjiayOpUGAW2") {
+    authorNotes.disabled = false;
 
     btnUpdateAuthorNotes.hidden = false;
     btnUpdateAuthorNotes.onclick = () => {
       const notes = document.getElementById("authorNotes").value;
       console.log(notes);
       set(ref(db, 'authorNotes'), notes);
+    }
+  } else {
+    authorNotes.disabled = true;
+
+    btnUpdateAuthorNotes.hidden = true;
+    btnUpdateAuthorNotes.onclick = () => {
+      return false;
     }
   }
 }
