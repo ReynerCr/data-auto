@@ -16,29 +16,54 @@
   <noscript>Esta página requiere JavaScript para su funcionamiento.</noscript>
 
   <h1>Control de HMI</h1>
+  <small>Automatización industrial UNET</small>
 
-  <h2>Autentificación</h2>
-  <div>
-    <button id="login">Iniciar sesión con Google</button>
-    <button id="logout">Cerrar sesión</button>
+  <div id="auth-author">
+    <!-- Seccion de autentificacion -->
+    <section id="authSection">
+      <h3>Autentificación</h3>
+      <button id="login">Iniciar sesión con Google</button>
+      <button id="logout">Cerrar sesión</button>
+
+      <!-- Seccion de imagenes de usuarios autenticados -->
+      <ul id="authImgs">
+        <!-- TODO borrar las img provisionales -->
+        <li><img src="img_provisional.png" width="60px"></li>
+        <li><img src="img_provisional.png" width="60px"></li>
+        <li><img src="img_provisional.png" width="60px"></li>
+        <li><img src="img_provisional.png" width="60px"></li>
+        <li><img src="img_provisional.png" width="60px"></li>
+        <li><img src="img_provisional.png" width="60px"></li>
+        <li><img src="img_provisional.png" width="60px"></li>
+        <li><img src="img_provisional.png" width="60px"></li>
+        <li><img src="img_provisional.png" width="60px"></li>
+        <li><img src="img_provisional.png" width="60px"></li>
+      </ul>
+    </section>
+
+    <hr>
+
+    <!-- Seccion de notas del autor -->
+    <section id="authorSection">
+      <h3>Notas del autor:</h3>
+      <form id="formAuthor" onsubmit="return false;">
+        <!-- TODO poner disabled a textarea -->
+        <textarea id="authorNotes" name="authorNotes"></textarea>
+        <!-- TODO poner hidden a boton -->
+        <button id="updateAuthorNotes">Actualizar</button>
+      </form>
+    </section>
   </div>
 
-  <!-- Manejo de autentificacion -->
-  <ul id="auth">
-  </ul>
 
-  <!-- Mostrando contenido -->
+  <!-- Mostrando contenido de HMI -->
   <div id="app">
-    <form id="randomData" onsubmit="return false;">
-      <label for="authorNotes">Notas del autor:</label>
-      <textarea id="authorNotes" name="authorNotes" disabled></textarea>
-      <button hidden id="updateAuthorNotes">Actualizar</button>
-    </form>
+
   </div>
 
   <!-- Importando modulo de autentificacion -->
   <script type="module" src="auth.js"></script>
-<!--   <script type="module" src="authorNote"></script> -->
+  <!--   <script type="module" src="authorNote"></script> -->
 </body>
 
 </html>

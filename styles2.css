@@ -1,0 +1,46 @@
+#authSection, #authorSection {
+  width: 45%;
+  text-align: center;
+  margin: auto auto;
+}
+
+#auth-author {
+  display: flex;
+  flex-flow: row nowrap;
+  margin: 2em 0;
+}
+
+#authImgs {
+  list-style: none;
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: center;
+}
+
+#auth>li {
+  display: inline-block;
+}
+
+#authorNotes {
+  width: 80%;
+  height: 100px;
+  display: block;
+  margin: 10px auto;
+  font-size: 1em;
+  background-color: #2b2a33;
+  padding: 10px;
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+#authorNotes:disabled {
+  background-color: none;
+}
+
+#app {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  max-width: 1280px;
+  margin: 0 auto;
+  text-align: center;
+}

@@ -30,7 +30,8 @@ onAuthStateChanged(auth, async (user) => {
     isAuthor();
   } else {
     window.document.getElementById("login").hidden = false;
-    window.document.getElementById("logout").hidden = true;
+    // TODO habilitar
+    //window.document.getElementById("logout").hidden = true;
   }
 });
 
