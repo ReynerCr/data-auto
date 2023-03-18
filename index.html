@@ -29,11 +29,16 @@
 
   <!-- Mostrando contenido -->
   <div id="app">
-
+    <form id="randomData" onsubmit="return false;">
+      <label for="authorNotes">Notas del autor:</label>
+      <textarea id="authorNotes" name="authorNotes" disabled></textarea>
+      <button hidden id="updateAuthorNotes">Actualizar</button>
+    </form>
   </div>
 
   <!-- Importando modulo de autentificacion -->
   <script type="module" src="auth.js"></script>
+<!--   <script type="module" src="authorNote"></script> -->
 </body>
 
 </html>

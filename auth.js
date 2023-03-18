@@ -1,5 +1,5 @@
 import { app, db } from "/index.js"
-import { ref, set, update, onValue, onChildAdded, get, onChildChanged } from "firebase/database";
+import { ref, set, update, onValue, onChildAdded } from "firebase/database";
 import {
   getAuth,
   signInWithRedirect,
@@ -9,8 +9,10 @@ import {
   signOut
 } from "firebase/auth"
 
+import "/authorNote.js";
+
 const provider = new GoogleAuthProvider(app);
-const auth = getAuth(app);
+export const auth = getAuth(app);
 
 let authInfo = document.getElementById("auth");
 
@@ -24,6 +26,8 @@ onAuthStateChanged(auth, async (user) => {
     }
     window.document.getElementById("login").hidden = true;
     window.document.getElementById("logout").hidden = false;
+
+    isAuthor();
   } else {
     window.document.getElementById("login").hidden = false;
     window.document.getElementById("logout").hidden = true;
@@ -93,3 +97,22 @@ document.getElementById("logout").onclick = async function () {
   }
 }
 
+// TODO funcional pero se puede mejorar
+function isAuthor() {
+  if (auth.currentUser.email === "reynercontreras0@gmail.com") {
+    let btnUpdateAuthorNotes = document.getElementById("updateAuthorNotes");
+
+    document.getElementById("authorNotes").disabled = false;
+
+    btnUpdateAuthorNotes.hidden = false;
+    btnUpdateAuthorNotes.onclick = () => {
+      const notes = document.getElementById("authorNotes").value;
+      console.log(notes);
+      set(ref(db, 'authorNotes'), notes);
+    }
+  }
+}
+
+onValue(ref(db, 'authorNotes'), (notes) => {
+  document.getElementById("authorNotes").value = notes.val();
+})
