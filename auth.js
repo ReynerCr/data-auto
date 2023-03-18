@@ -22,11 +22,9 @@ onAuthStateChanged(auth, async (user) => {
     if (redirect !== null && redirect.operationType === "signIn") {
       saveUserData(user);
     }
-    console.log("Auth si");
     window.document.getElementById("login").hidden = true;
     window.document.getElementById("logout").hidden = false;
   } else {
-    console.log("Auth no");
     window.document.getElementById("login").hidden = false;
     window.document.getElementById("logout").hidden = true;
   }
@@ -34,15 +32,21 @@ onAuthStateChanged(auth, async (user) => {
 
 // Lista de fotos de usuarios autenticados
 onChildAdded(ref(db, 'usersKeys'), (data) => {
-  onValue(ref(db, 'users/' + data.key + "/"), (child) => {
-    if (child.val().autenticado === true) {
+  onValue(ref(db, 'users/' + data.key + '/public'), (child) => {
+    if (child.val().auth === true) {
       let li = document.createElement("li");
       let img = document.createElement("img");
       img.style.width = "80px";
-      img.src = child.val().foto;
+      img.src = child.val().photo;
       li.id = data.key; // quizas no es lo mas seguro
       li.appendChild(img);
       authInfo.appendChild(li);
+    }
+    else {
+      let li = document.getElementById(data.key);
+      if (li) {
+        authInfo.removeChild(li);
+      }
     }
   })
 });
@@ -59,12 +63,15 @@ document.getElementById("login").onclick = async function () {
 //Esta funcion guarda los datos del usuario recien autenticado
 function saveUserData(user) {
   set(ref(db, 'users/' + user.uid), {
+    public: {
+      auth: true,
+      photo: user.photoURL
+    }, // para mostrar la imagen de perfil de usuarios autenticados
+    
     uid: user.uid,
-    autenticado: true, // para mostrar la imagen de perfil de usuarios autenticados
-    nombre: user.displayName,
+    name: user.displayName,
     email: user.email,
-    foto: user.photoURL,
-    dia: user.metadata.lastSignInTime
+    login_timestamp: user.metadata.lastSignInTime
   });
 
   // guardando keys o uid en otra ruta por motivos de seguridad
@@ -73,12 +80,8 @@ function saveUserData(user) {
 
 // Funcion de cierre de sesion y boton de cierre
 async function logout(uid) {
-  const reference = ref(db, 'users/' + uid + "/");
-  await update(reference, { autenticado: false });
-
-  let img = document.getElementById(uid);
-
-  authInfo.removeChild(img);
+  const reference = ref(db, 'users/' + uid + "/public/");
+  await update(reference, { auth: false });
 }
 
 document.getElementById("logout").onclick = async function () {
