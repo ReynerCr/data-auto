@@ -22,6 +22,7 @@ onAuthStateChanged(auth, async (user) => {
     if (redirect !== null && redirect.operationType === "signIn") {
       saveUserData(user);
     }
+
     window.document.getElementById("login").hidden = true;
     window.document.getElementById("logout").hidden = false;
   } else {
@@ -33,24 +34,26 @@ onAuthStateChanged(auth, async (user) => {
 
 // Lista de fotos de usuarios autenticados
 onChildAdded(ref(db, 'usersKeys'), (data) => {
-  onValue(ref(db, 'users/' + data.key + '/public'), (child) => {
-    if (child.val().auth === true) {
-      const li = document.createElement("li");
-      const img = document.createElement("img");
-      img.style.width = "80px";
-      img.src = child.val().photo;
-      img.loading = "lazy";
-      li.id = data.key; // quizas no es lo mas seguro
-      li.appendChild(img);
-      authInfo.appendChild(li);
-    }
-    else {
-      const li = document.getElementById(data.key);
-      if (li) {
-        authInfo.removeChild(li);
+  if (data.exists()) {
+    onValue(ref(db, 'users/' + data.key + '/public'), (child) => {
+      if (child.exists() && child.val().auth === true) {
+        const li = document.createElement("li");
+        const img = document.createElement("img");
+        img.style.width = "80px";
+        img.src = child.val().photo;
+        img.loading = "lazy";
+        li.id = data.key; // quizas no es lo mas seguro
+        li.appendChild(img);
+        authInfo.appendChild(li);
       }
-    }
-  })
+      else {
+        const li = document.getElementById(data.key);
+        if (li) {
+          authInfo.removeChild(li);
+        }
+      }
+    })
+  }
 });
 
 // Evento para boton de login
@@ -120,5 +123,7 @@ function isAuthor() {
 }
 
 onValue(ref(db, 'authorNotes'), (notes) => {
-  document.getElementById("authorNotes").value = notes.val();
+  if (notes.exists()) {
+    document.getElementById("authorNotes").value = notes.val();
+  }
 });
