@@ -9,8 +9,6 @@ import {
   signOut
 } from "firebase/auth"
 
-import "/authorNote.js";
-
 const provider = new GoogleAuthProvider(app);
 export const auth = getAuth(app);
 
@@ -55,9 +53,9 @@ onChildAdded(ref(db, 'usersKeys'), (data) => {
 });
 
 // Evento para boton de login
-document.getElementById("login").onclick = async function () {
+document.getElementById("login").onclick = function () {
   try {
-    await signInWithRedirect(auth, provider);
+    signInWithRedirect(auth, provider);
   } catch (error) {
     console.log(error);
   }

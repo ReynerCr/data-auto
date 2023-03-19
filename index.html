@@ -2,14 +2,16 @@
 <html lang="es">
 
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Data-auto</title>
 
   <link rel="stylesheet" href="styles1.css">
   <link rel="stylesheet" href="styles2.css">
   <script type="module" src="/index.js"></script>
+  <script src="https://www.gstatic.com/charts/loader.js"></script>
 </head>
 
 <body>
@@ -35,7 +37,7 @@
 
     <!-- Seccion de notas del autor -->
     <section id="authorSection">
-      <h3>Notas del autor:</h3>
+      <h3>Nota del autor:</h3>
       <form id="formAuthor" onsubmit="return false;">
         <textarea id="authorNotes" name="authorNotes" disabled></textarea>
         <button id="updateAuthorNotes" hidden>Actualizar</button>
@@ -43,17 +45,15 @@
     </section>
   </div>
 
-
+  <script type="module" src="charts.js"></script>
   <!-- Mostrando contenido de HMI -->
   <div id="app">
     <h2>Temperaturas</h2>
-    <img src="img_provisional.png" width="200px">
-    <img src="img_provisional.png" width="200px">
+    <div id="chart_div"></div>
   </div>
 
   <!-- Importando modulo de autentificacion -->
   <script type="module" src="auth.js"></script>
-  <!--   <script type="module" src="authorNote"></script> -->
 </body>
 
 </html>
