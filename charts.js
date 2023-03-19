@@ -63,18 +63,30 @@ function drawGauges() {
   });
 }
 
+// TODO falta popular la grafica con los datos iniciales
 /* Cargando eventos para botones */
-document.getElementById("btnTherm1").onclick = function () {
+const btnTherm1 = document.getElementById("btnTherm1");
+btnTherm1.onclick = function () {
+  btnTherm2.disabled = false;
+  btnTherm3.disabled = false;
+  btnTherm1.disabled = true;
   google.charts.setOnLoadCallback(drawLineChart('therm', 1));
 }
-document.getElementById("btnTherm2").onclick = function () {
+
+const btnTherm2 = document.getElementById("btnTherm2");
+btnTherm2.onclick = function () {
+  btnTherm1.disabled = false;
+  btnTherm3.disabled = false;
+  btnTherm2.disabled = true;
   google.charts.setOnLoadCallback(drawLineChart('therm', 2));
 }
-document.getElementById("btnTherm3").onclick = function () {
+
+const btnTherm3 = document.getElementById("btnTherm3");
+btnTherm3.onclick = function () {
+  btnTherm1.disabled = false;
+  btnTherm2.disabled = false;
+  btnTherm3.disabled = true;
   google.charts.setOnLoadCallback(drawLineChart('therm', 3));
-}
-document.getElementById("btnTherm4").onclick = function () {
-  google.charts.setOnLoadCallback(drawLineChart('therm', 4));
 }
 
 /* Funcion para el grafico de lineas */
@@ -87,9 +99,10 @@ function drawLineChart(name, tNumber) {
   let options = {
     title: 'Tiempo vs temperatura del thermistor ' + tNumber,
     curveType: 'function',
-    pointSize: 30,
-    width: 300,
-    legend: { position: 'bottom' },
+    pointSize: 5,
+    height: 350,
+    width: 640,
+    legend: { position: 'none' },
 
     hAxis: {
       title: "Tiempo", format: 'HH:mm'
@@ -97,7 +110,7 @@ function drawLineChart(name, tNumber) {
     vAxis: {
       title: "Tempertura (°C)", viewWindowMode: 'explicit', viewWindow: {
         max: 50,
-        min: -20
+        min: -50
       }
     },
   };
@@ -107,19 +120,24 @@ function drawLineChart(name, tNumber) {
 
   formatDate.format(dataTable, 0);
 
-  let chart = new google.visualization.LineChart(document.getElementById(name + tNumber));
+  let chart = new google.visualization.LineChart(document.getElementById('therm'));
 
   let qTempLast = query(ref(dbNodemcu, 'Refrigerador/TThe' + tNumber), limitToLast(1));
 
   // TODO pilas aqui porque esto quizas se puede mejorar???
   let qTempLast100 = query(ref(dbNodemcu, 'Refrigerador/TThe' + tNumber), limitToLast(100));
 
-  let data = [];
+  //let data = [];
 
+  /*
+    Se verifica si hay una nueva temperatura registrado
+    y entonces se procede a tomar los datos para hacer el nuevo
+    timestamp. En vez de hacerlo con varios observers a la base de 
+    datos, se hace con uno solo.
+  */
   onValue(qTempLast, (snapshot) => {
     if (snapshot.exists()) {
-      const tempValue = snapshot.val();
-
+      const tempValue = Object.values(snapshot.val())[0];
       let pYear = new Promise((resolve, reject) => {
         resolve(getTimestampFraction('ano'));
       });
@@ -140,21 +158,11 @@ function drawLineChart(name, tNumber) {
         then((values) => {
           const date = new Date(values[0], values[1], values[2], values[3], values[4], 0, 0);
 
-          data.push(date);
+          dataTable.addRow([date, tempValue]);
+          chart.draw(dataTable, options);
+          //data.push(date);
         }); /* Promise.all */
     } /* if snapshot.exists() */
-
-    /* setInterval(function () {
-        dataTableTime = new google.visualization.DataTable();
-        dataTableTime.addColumn('datetime', 'Time');
-        dataTableTime.addColumn('number', 'Temperatura');
-        for (index = 0; index < qtyDatos; index++) {
-          dataTableTime.addRow(
-            [new Date(año[index], mes[index] - 1, dia[index], hora[index], minutos[index], 0, 0), temp[index]]);
-        }
-        chartTime.draw(dataTableTime, optionsChartTime);
-        }, 1300); */
-
   }); /* onValue */
 }
 

@@ -37,11 +37,8 @@
 }
 
 #app {
-  width: 70%;
-  max-width: 1280px;
   margin: 0 auto;
   padding: 0;
-  text-align: center;
 }
 
 #chart_div {
@@ -52,6 +49,4 @@
 #lineGraphs {
   display: flex;
   flex-flow: row wrap;
-  width: 100%;
-  justify-content: space-evenly;
 }
