@@ -1,5 +1,5 @@
 import { dbNodemcu } from "/index.js"
-import { ref, onValue, query, limitToLast } from "firebase/database";
+import { ref, onValue, query, limitToLast, get } from "firebase/database";
 
 // Cargando Google Charts para el idioma español
 google.charts.load('current', { 'packages': ['corechart', 'gauge'], 'language': 'es' });
@@ -66,7 +66,7 @@ function drawGauges() {
 /* Cargando eventos para botones */
 document.getElementById("btnTherm1").onclick = function () {
   google.charts.setOnLoadCallback(drawLineChart('therm', 1));
-} 
+}
 document.getElementById("btnTherm2").onclick = function () {
   google.charts.setOnLoadCallback(drawLineChart('therm', 2));
 }
@@ -75,14 +75,14 @@ document.getElementById("btnTherm3").onclick = function () {
 }
 document.getElementById("btnTherm4").onclick = function () {
   google.charts.setOnLoadCallback(drawLineChart('therm', 4));
-} 
+}
 
 /* Funcion para el grafico de lineas */
 function drawLineChart(name, tNumber) {
-  let data = new google.visualization.DataTable();
+  let dataTable = new google.visualization.DataTable();
 
-  data.addColumn('datetime', 'Time');
-  data.addColumn('number', 'Temperatura');
+  dataTable.addColumn('datetime', 'Time');
+  dataTable.addColumn('number', 'Temperatura');
 
   let options = {
     title: 'Tiempo vs temperatura del thermistor ' + tNumber,
@@ -105,100 +105,76 @@ function drawLineChart(name, tNumber) {
   var formatDate = new google.visualization.DateFormat(
     { prefix: 'Time: ', pattern: "dd MMM HH:mm" });
 
-  formatDate.format(data, 0);
+  formatDate.format(dataTable, 0);
 
   let chart = new google.visualization.LineChart(document.getElementById(name + tNumber));
 
-  //chart.draw(data, options);
+  let qTempLast = query(ref(dbNodemcu, 'Refrigerador/TThe' + tNumber), limitToLast(1));
 
+  // TODO pilas aqui porque esto quizas se puede mejorar???
+  let qTempLast100 = query(ref(dbNodemcu, 'Refrigerador/TThe' + tNumber), limitToLast(100));
 
-/*   var hora = firebase.database().ref('Refrigerador/Hora').limitToLast(qtyDatos);
-  var minutos = firebase.database().ref('Refrigerador/Minutos').limitToLast(qtyDatos);
-  var dia = firebase.database().ref('Refrigerador/Dia').limitToLast(qtyDatos);
-  var mes = firebase.database().ref('Refrigerador/Mes').limitToLast(qtyDatos);
-  var año = firebase.database().ref('Refrigerador/Ano').limitToLast(qtyDatos); */
+  let data = [];
 
-  let temp = query(ref(dbNodemcu, 'Refrigerador/TThe' + tNumber), limitToLast(1));
-  let hour = query(ref(dbNodemcu, 'Refrigerador/Hora'), limitToLast(1));
-  let minute = query(ref(dbNodemcu, 'Refrigerador/Minutos'), limitToLast(1));
-  let day = query(ref(dbNodemcu, 'Refrigerador/Dia'), limitToLast(1));
-  let month = query(ref(dbNodemcu, 'Refrigerador/Mes'), limitToLast(1));
-  let year = query(ref(dbNodemcu, 'Refrigerador/Ano'), limitToLast(1));
+  onValue(qTempLast, (snapshot) => {
+    if (snapshot.exists()) {
+      const tempValue = snapshot.val();
 
+      let pYear = new Promise((resolve, reject) => {
+        resolve(getTimestampFraction('ano'));
+      });
+      let pMonth = new Promise((resolve, reject) => {
+        resolve(getTimestampFraction('mes'));
+      });
+      let pDay = new Promise((resolve, reject) => {
+        resolve(getTimestampFraction('dia'));
+      });
+      let pHour = new Promise((resolve, reject) => {
+        resolve(getTimestampFraction('hora'));
+      });
+      let pMinutes = new Promise((resolve, reject) => {
+        resolve(getTimestampFraction('minutos'));
+      });
+      
+      Promise.all([pYear, pMonth, pDay, pHour, pMinutes]).
+        then((values) => {
+          const date = new Date(values[0], values[1], values[2], values[3], values[4], 0, 0);
 
-  
-  onValue(temp, (snapshot) => {
-    let value = snapshot.val();
-    console.log(value);
-/*     if (temp) {
-      data.setValue(1, 1, Object.values(value)[0]);
-      formatter.format(data, 1);
-      chart.draw(data, options);
-    } */
-  });
+          data.push(date);
+        }); /* Promise.all */
+    } /* if snapshot.exists() */
 
-  onValue(hour, (snapshot) => {
-    let value = snapshot.val();
-    console.log(value);
-    /*     if (temp) {
-          data.setValue(1, 1, Object.values(value)[0]);
-          formatter.format(data, 1);
-          chart.draw(data, options);
-        } */
-  });
+    /* setInterval(function () {
+        dataTableTime = new google.visualization.DataTable();
+        dataTableTime.addColumn('datetime', 'Time');
+        dataTableTime.addColumn('number', 'Temperatura');
+        for (index = 0; index < qtyDatos; index++) {
+          dataTableTime.addRow(
+            [new Date(año[index], mes[index] - 1, dia[index], hora[index], minutos[index], 0, 0), temp[index]]);
+        }
+        chartTime.draw(dataTableTime, optionsChartTime);
+        }, 1300); */
 
-  onValue(minute, (snapshot) => {
-    let value = snapshot.val();
-    console.log(value);
-    /*     if (temp) {
-          data.setValue(1, 1, Object.values(value)[0]);
-          formatter.format(data, 1);
-          chart.draw(data, options);
-        } */
-  });
+  }); /* onValue */
+}
 
-  onValue(day, (snapshot) => {
-    let value = snapshot.val();
-    console.log(value);
-    /*     if (temp) {
-          data.setValue(1, 1, Object.values(value)[0]);
-          formatter.format(data, 1);
-          chart.draw(data, options);
-        } */
-  });
-  
-  onValue(month, (snapshot) => {
-    let value = snapshot.val();
-    console.log(value);
-    /*     if (temp) {
-          data.setValue(1, 1, Object.values(value)[0]);
-          formatter.format(data, 1);
-          chart.draw(data, options);
-        } */
-  });
+/* Tomando fragmento del timestamp, de la base de datos */
+async function getTimestampFraction(name, nQueries = 1) {
+  let value = 0;
 
-  onValue(year, (snapshot) => {
-    let value = snapshot.val();
-    console.log(value);
-    /*     if (temp) {
-          data.setValue(1, 1, Object.values(value)[0]);
-          formatter.format(data, 1);
-          chart.draw(data, options);
-        } */
-  });
+  const capitalizedName = name.charAt(0).toUpperCase() + name.slice(1);
 
+  let qMinutes = query(ref(dbNodemcu, 'Refrigerador/' + capitalizedName), limitToLast(nQueries));
 
-
-
-
-  /* setInterval(function () {
-    dataTableTime = new google.visualization.DataTable();
-    dataTableTime.addColumn('datetime', 'Time');
-    dataTableTime.addColumn('number', 'Temperatura');
-    for (index = 0; index < qtyDatos; index++) {
-      dataTableTime.addRow(
-        [new Date(año[index], mes[index] - 1, dia[index], hora[index], minutos[index], 0, 0), temp[index]]);
+  await get(qMinutes).then((snap) => {
+    if (snap.exists()) {
+      value = Object.values(snap.val())[0];
+    } else {
+      console.log("No hay " + name);
     }
-    chartTime.draw(dataTableTime, optionsChartTime);
-  }, 1300); */
+  }).catch((error) => {
+    console.error(error);
+  });
+
+  return value;
 }
