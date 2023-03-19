@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="es">
 
 <head>
@@ -45,15 +46,34 @@
     </section>
   </div>
 
-  <script type="module" src="charts.js"></script>
   <!-- Mostrando contenido de HMI -->
   <div id="app">
-    <h2>Temperaturas</h2>
-    <div id="chart_div"></div>
+    <!-- Gauges -->
+    <section>
+      <h2>Temperaturas</h2>
+      <div id="chart_div"></div>
+    </section>
+
+    <!-- Graficas -->
+    <section id="lineGraphs">
+      <div id="therm1">
+        <button id="btnTherm1">Thermistor 1</button>
+      </div>
+      <div id="therm2">
+        <button id="btnTherm2">Thermistor 2</button>
+      </div>
+      <div id="therm3">
+        <button id="btnTherm3">Thermistor 3</button>
+      </div>
+      <div id="therm4">
+        <button id="btnTherm4">Thermistor 4</button>
+      </div>
+    </section>
   </div>
 
-  <!-- Importando modulo de autentificacion -->
+  <!-- Importando modulos de autentificacion y charts -->
   <script type="module" src="auth.js"></script>
+  <script type="module" src="charts.js"></script>
 </body>
 
 </html>

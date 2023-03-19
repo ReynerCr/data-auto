@@ -39,6 +39,7 @@ onChildAdded(ref(db, 'usersKeys'), (data) => {
       const img = document.createElement("img");
       img.style.width = "80px";
       img.src = child.val().photo;
+      img.loading = "lazy";
       li.id = data.key; // quizas no es lo mas seguro
       li.appendChild(img);
       authInfo.appendChild(li);
@@ -120,4 +121,4 @@ function isAuthor() {
 
 onValue(ref(db, 'authorNotes'), (notes) => {
   document.getElementById("authorNotes").value = notes.val();
-})
+});
