@@ -63,37 +63,32 @@ function drawGauges() {
   });
 }
 
+function btnThermClick(btnNumber) {
+  btnTherm1.disabled = (btnNumber == 1) ? true : false;
+  btnTherm2.disabled = (btnNumber == 2) ? true : false;
+  btnTherm3.disabled = (btnNumber == 3) ? true : false;
+
+  google.charts.setOnLoadCallback(drawLineChart('therm', btnNumber));
+}
+
 /* Cargando eventos para botones */
 const btnTherm1 = document.getElementById("btnTherm1");
-btnTherm1.onclick = function () {
-  btnTherm2.disabled = false;
-  btnTherm3.disabled = false;
-  btnTherm1.disabled = true;
-  google.charts.setOnLoadCallback(drawLineChart('therm', 1));
-}
+btnTherm1.onclick = function () { btnThermClick(1); }
 
 const btnTherm2 = document.getElementById("btnTherm2");
-btnTherm2.onclick = function () {
-  btnTherm1.disabled = false;
-  btnTherm3.disabled = false;
-  btnTherm2.disabled = true;
-  google.charts.setOnLoadCallback(drawLineChart('therm', 2));
-}
+btnTherm2.onclick = function () { btnThermClick(2); }
 
 const btnTherm3 = document.getElementById("btnTherm3");
-btnTherm3.onclick = function () {
-  btnTherm1.disabled = false;
-  btnTherm2.disabled = false;
-  btnTherm3.disabled = true;
-  google.charts.setOnLoadCallback(drawLineChart('therm', 3));
-}
+btnTherm3.onclick = function () { btnThermClick(3); }
 
+/* Almacena la funcion unsubscribe que arroja el observador onValue */
 let unsubscribeGraph;
 
 /* Funcion para el grafico de lineas */
 async function drawLineChart(name, tNumber) {
-  let dataTable = new google.visualization.DataTable();
+  let chart = new google.visualization.LineChart(document.getElementById("therm"));
 
+  let dataTable = new google.visualization.DataTable();
   dataTable.addColumn('datetime', 'Time');
   dataTable.addColumn('number', 'Temperatura');
 
@@ -104,7 +99,6 @@ async function drawLineChart(name, tNumber) {
     height: 350,
     width: 640,
     legend: { position: 'none' },
-
     hAxis: {
       title: "Tiempo", format: 'HH:mm'
     },
@@ -116,37 +110,13 @@ async function drawLineChart(name, tNumber) {
     },
   };
 
-  var formatDate = new google.visualization.DateFormat(
-    { prefix: 'Time: ', pattern: "dd MMM HH:mm" });
-
-  formatDate.format(dataTable, 0);
-
-  let chart = new google.visualization.LineChart(document.getElementById('therm'));
-
-  let qTempLast = query(ref(dbNodemcu, 'Refrigerador/TThe' + tNumber), limitToLast(1));
-
-  // TODO esto en teoria se puede mejorar en funciones aparte
-  let pTemp = new Promise((resolve, reject) => {
-    resolve(getTimestampFraction('TThe' + tNumber, 100));
-    //reject(function() { console.log("No se pudo."); }) // TODO ???
-  });
-  let pYear = new Promise((resolve, reject) => {
-    resolve(getTimestampFraction('ano', 100));
-    //reject(function() { console.log("No se pudo."); })
-  });
-  let pMonth = new Promise((resolve, reject) => {
-    resolve(getTimestampFraction('mes', 100));
-  });
-  let pDay = new Promise((resolve, reject) => {
-    resolve(getTimestampFraction('dia', 100));
-  });
-  let pHour = new Promise((resolve, reject) => {
-    resolve(getTimestampFraction('hora', 100));
-  });
-  let pMinutes = new Promise((resolve, reject) => {
-    resolve(getTimestampFraction('minutos', 100));
-  });
-
+  /* Tomando las 100 ultimas temperaturas con fecha utilizando get y graficando */
+  let pTemp = promiseGetFromDB('TThe' + tNumber, 100);
+  let pYear = promiseGetFromDB("ano", 100);
+  let pMonth = promiseGetFromDB("mes", 100);
+  let pDay = promiseGetFromDB("dia", 100);
+  let pHour = promiseGetFromDB("hora", 100);
+  let pMinutes = promiseGetFromDB("minutos", 100);
   await Promise.all([pYear, pMonth, pDay, pHour, pMinutes, pTemp]).
     then((values) => {
       const years = values[0];
@@ -155,69 +125,56 @@ async function drawLineChart(name, tNumber) {
       const hours = values[3];
       const minutes = values[4];
       const temps = values[5];
-
       for (let i = 0; i < 100; i++) {
         const date = new Date(years[i], months[i], days[i], hours[i], minutes[i], 0, 0);
         dataTable.addRow([date, temps[i]]);
       }
       chart.draw(dataTable, options);
-    }); /* Promise.all */
+    });
 
-
-  /*
-  Se verifica si hay una nueva temperatura registrado
-  y entonces se procede a tomar los datos para hacer el nuevo
-  timestamp. En vez de hacerlo con varios observers a la base de 
-  datos, se hace con uno solo.
-*/
-  if (unsubscribeGraph) {
-    /* Eliminando observers anteriores */
+  /* Anyadiendo observer a la ultima temperatura para graficarla por cada nuevo valor  */
+  if (unsubscribeGraph) { // Eliminando observers onValue anteriores
     await unsubscribeGraph();
   }
+  const qTempLast = query(ref(dbNodemcu, 'Refrigerador/TThe' + tNumber), limitToLast(1));
   unsubscribeGraph = onValue(qTempLast, (snapshot) => {
     if (snapshot.exists()) {
       const tempValue = Object.values(snapshot.val())[0];
 
-      pYear = new Promise((resolve, reject) => {
-        resolve(getTimestampFraction('ano'));
-      });
-      pMonth = new Promise((resolve, reject) => {
-        resolve(getTimestampFraction('mes'));
-      });
-      pDay = new Promise((resolve, reject) => {
-        resolve(getTimestampFraction('dia'));
-      });
-      pHour = new Promise((resolve, reject) => {
-        resolve(getTimestampFraction('hora'));
-      });
-      pMinutes = new Promise((resolve, reject) => {
-        resolve(getTimestampFraction('minutos'));
-      });
-
+      // Tomando la ultima fecha con get
+      pYear = promiseGetFromDB("ano", 1);
+      pMonth = promiseGetFromDB("mes", 1);
+      pDay = promiseGetFromDB("dia", 1);
+      pHour = promiseGetFromDB("hora", 1);
+      pMinutes = promiseGetFromDB("minutos", 1);
       Promise.all([pYear, pMonth, pDay, pHour, pMinutes]).
         then((values) => {
           const date = new Date(values[0], values[1], values[2], values[3], values[4], 0, 0);
           dataTable.addRow([date, tempValue]);
           chart.draw(dataTable, options);
-
-        }); /* Promise.all */
-    } /* if snapshot.exists() */
-  }); /* onValue */
+        });
+    } // if snapshot.exists()
+  }); // onValue
 }
 
-/* Tomando fragmento del timestamp, de la base de datos */
-async function getTimestampFraction(name, nQueries = 1) {
-  let value = 0;
+/* Promesa para la toma de datos de la DB con get */
+async function promiseGetFromDB(name, nQueries) {
+  return new Promise((resolve, reject) => {
+    resolve(getFromDB(name, nQueries));
+  });
+}
 
+/* Tomando un dato de la DB con get */
+async function getFromDB(name, nQueries) {
+  let value = null;
   const capitalizedName = name.charAt(0).toUpperCase() + name.slice(1);
-
   let queries = query(ref(dbNodemcu, 'Refrigerador/' + capitalizedName), limitToLast(nQueries));
 
   await get(queries).then((snap) => {
     if (snap.exists()) {
       value = Object.values(snap.val());
     } else {
-      console.log("No hay " + name + ' nQueries = ' + nQueries);
+      console.log("No hay " + name + " para nQueries = " + nQueries);
     }
   }).catch((error) => {
     console.error(error);
